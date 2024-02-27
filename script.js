@@ -8,61 +8,87 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputTemp = document.querySelector('.form__input--temp');
 const inputClimb = document.querySelector('.form__input--climb');
 
-let map, mapEvent;
 
-if (navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(
-        function(position){
+class App {
+
+    #map;
+    #mapEvent;
+    constructor(){
+        this._getPosition();
+
+        form.addEventListener('submit', this._newWorkout.bind(this))
+        
+        inputType.addEventListener('change', this._toggleClimbField)
+
+    }
+
+    _getPosition(){
+        if (navigator.geolocation){
+            navigator.geolocation.getCurrentPosition(
+                this._loadMap.bind(this),
+                function(){
+                    alert("Brak dostępu do GPS")
+                
+                }
+            )
+        }
+    }
+
+    _loadMap(position){
             const {latitude} = position.coords;
             const {longitude} = position.coords;
             console.log(`https://www.google.com/maps/@${latitude},${longitude},15z?entry=ttu`)
             
             const coords = [latitude, longitude];
 
-            map = L.map('map').setView(coords, 15);
+            this.#map = L.map('map').setView(coords, 15);
             // console.log(map)
 
             L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+            }).addTo(this.#map);
 
             // click na mapie
-            map.on('click', function(event){
-                mapEvent = event;
-                form.classList.remove('hidden')
-                inputDistance.focus();
+            this.#map.on('click', this._showForm.bind(this))
+            }
+        
 
+    _showForm(e){
+        this.#mapEvent = e;
+        form.classList.remove('hidden')
+        inputDistance.focus();
+    }
 
-                
-            })
-            },
-        function(){
-            alert("Brak dostępu do GPS")
-        }
-        )
+    _toggleClimbField(){
+        inputClimb.closest('.form__row').classList.toggle('form__row--hidden')
+        inputTemp.closest('.form__row').classList.toggle('form__row--hidden')
+    }
+
+    _newWorkout(e){
+        e.preventDefault()
+            // reset input
+            inputClimb.value=
+            inputDistance.value=
+            inputDuration.value=
+            inputTemp.value=
+                '';
+            // dodawanie pinezki
+            const {lat, lng} = this.#mapEvent.latlng
+        
+            L.marker([lat, lng])
+            .addTo(this.#map)
+            .bindPopup(
+                L.popup({
+                autoClose: false,
+                closeOnClick: false,
+                className: 'running-popup'
+            }))
+            .setPopupContent('Trening')
+            .openPopup();
+    }
 }
 
-form.addEventListener('submit', function(event){
-    event.preventDefault()
-    // reset input
-    inputClimb.value=inputDistance.value=inputDuration.value=inputTemp.value='';
-    // dodawanie pinezki
-    console.log(mapEvent)
-    const {lat, lng} = mapEvent.latlng
+const app = new App();
 
-    L.marker([lat, lng])
-    .addTo(map)
-    .bindPopup(
-        L.popup({
-        autoClose: false,
-        closeOnClick: false,
-        className: 'running-popup'
-    }))
-    .setPopupContent('Trening')
-    .openPopup();
-})
+// 
 
-inputType.addEventListener('change', function(){
-    inputClimb.closest('.form__row').classList.toggle('form__row--hidden')
-    inputTemp.closest('.form__row').classList.toggle('form__row--hidden')
-})
