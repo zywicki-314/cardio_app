@@ -34,17 +34,17 @@ body {
   display: flex;
 }
 
-/* Основное */
+/* Main */
 a:link,
 a:visited {
   color: var(--color-brand--1);
 }
 
-/* Боковая панель */
+/* Sidebar */
 .sidebar {
   flex-basis: 70rem;
   background-color: var(--color-dark--1);
-  padding: 5rem 5rem 3rem 5rem;
+  padding: 5rem 3rem 3rem 3rem;
   display: flex;
   flex-direction: column;
 }
