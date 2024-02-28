@@ -21,6 +21,8 @@ class Workout {
 
 class Running extends Workout {
 
+    type = 'running'
+
     constructor(coords, distance, duration, temp){
         super(coords, distance, duration)
         this.temp = temp
@@ -32,6 +34,8 @@ class Running extends Workout {
     }
 }
 class Cycling extends Workout {
+
+    type = 'cycling'
 
     constructor(coords, distance, duration, climb){
         super(coords, distance, duration)
@@ -52,6 +56,8 @@ class App {
 
     #map;
     #mapEvent;
+    #workouts = [];
+
     constructor(){
         this._getPosition();
 
@@ -104,26 +110,88 @@ class App {
     }
 
     _newWorkout(e){
+
+        const areNumbers = (...numbers) => numbers.every(num=>Number.isFinite(num))
+
+        const areNumbersPositive = (...numbers)=>numbers.every(num=>num>0)
+
         e.preventDefault()
-            // reset input
+
+        const {lat, lng} = this.#mapEvent.latlng;
+        let workout;
+
+
+        //  dane z formy
+        const type = inputType.value;
+        const distance = +inputDistance.value;
+        const duration = +inputDuration.value;
+        
+        // jeśli rodzaj treningu to "bieg" - stworzyć nowy obiekt Running
+        if(type === 'running'){
+            // czy dane prawidłowe
+            const temp = +inputTemp.value
+            if(
+                // !Number.isFinite(distance) || 
+                // !Number.isFinite(duration) || 
+                // !Number.isFinite(temp)
+                !areNumbers(distance, duration, temp) ||
+                !areNumbersPositive(distance, duration, temp)
+            ) 
+                return alert('Wprowadź dodatnią liczbę')
+
+            workout = new Running([lat, lng], distance, duration, temp)
+            // this.#workouts.push(workout)
+        }
+        // jerzeli rodzaj treningu to "rower" - stworzyć nowy obiekt Cycling
+        if(type === 'cycling'){
+            // czy dane prawidłowe
+            const climb = +inputClimb.value
+            if(
+                // !Number.isFinite(distance) || 
+                // !Number.isFinite(duration) || 
+                // !Number.isFinite(climb)
+                !areNumbers(distance, duration, climb) ||
+                !areNumbersPositive(distance, duration)
+                
+            ) 
+                return alert('Wprowadź dodatnią liczbę')
+
+            workout = new Cycling([lat, lng], distance, duration, climb)
+            
+        }
+        // dodać nowy obiekt do tabeli treningów
+
+        this.#workouts.push(workout)
+        // console.log(workout)
+
+
+        // wyświetlić trening na mapie
+        
+        this.displayWorkout(workout)
+
+        // wyświetlić trening na liście treningów
+            // hide form and reset input 
             inputClimb.value=
             inputDistance.value=
             inputDuration.value=
             inputTemp.value=
                 '';
-            // dodawanie pinezki
-            const {lat, lng} = this.#mapEvent.latlng
-        
-            L.marker([lat, lng])
-            .addTo(this.#map)
-            .bindPopup(
-                L.popup({
-                autoClose: false,
-                closeOnClick: false,
-                className: 'running-popup'
-            }))
-            .setPopupContent('Trening')
-            .openPopup();
+
+    }
+
+    displayWorkout(workout){
+        L.marker(workout.coords)
+        .addTo(this.#map)
+        .bindPopup(
+            L.popup({
+            maxWidth: 200,
+            minWidth: 100,
+            autoClose: false,
+            closeOnClick: false,
+            className: `${workout.type}-popup` 
+        }))
+        .setPopupContent('Trening')
+        .openPopup();
     }
 }
 
