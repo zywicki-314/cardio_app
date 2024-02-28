@@ -70,6 +70,7 @@ class App {
 
     constructor(){
         this._getPosition();
+        this._getLocalStorageData()
         form.addEventListener('submit', this._newWorkout.bind(this))
         inputType.addEventListener('change', this._toggleClimbField)
         containerWorkouts.addEventListener('click', this._moveToWorkout.bind(this))
@@ -104,6 +105,10 @@ class App {
 
             // click na mapie
             this.#map.on('click', this._showForm.bind(this))
+
+            this.#workouts.forEach(workout=>{
+                this._displayWorkout(workout)
+            })
             }
         
 
@@ -193,6 +198,9 @@ class App {
         // hide form and reset input 
         this._hideForm()
 
+        // zapisać wszystkie treningi w "localStorage"
+        this._addWorkoutsToLocalStorage()
+
     }
 
     _displayWorkout(workout){
@@ -275,13 +283,31 @@ class App {
             pan: {
                 duration: 1,
             }
-        } )
-        workout.click()
-        console.log(workout)
+        })
+    }
+
+    _addWorkoutsToLocalStorage(){
+        localStorage.setItem('workouts', JSON.stringify(this.#workouts))
+    }
+
+    _getLocalStorageData(){
+        const data = JSON.parse(localStorage.getItem('workouts'))
+        // console.log(data)
+
+        if(!data) return;
+
+        this.#workouts = data;
+
+        this.#workouts.forEach(workout=>{
+            this._displayWorkoutOnSidebar(workout)
+            // this._displayWorkout(workout)
+        })
+    }
+
+    resizeTo(){
+        localStorage.removeItem('workouts')
+        location.reload()
     }
 }
 
 const app = new App();
-
-// 
-
