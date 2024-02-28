@@ -11,6 +11,7 @@ const inputClimb = document.querySelector('.form__input--climb');
 class Workout {
     date = new Date();
     id = (Date.now() + '').slice(-10);
+    clickNumber = 0;
 
     constructor(coords, distance, duration){
         this.coords = coords;
@@ -22,7 +23,10 @@ class Workout {
         this.type === 'running' 
         ? this.description = `Bieg ${new Intl.DateTimeFormat('pl-Pl').format(this.date)}` 
         : this.description = `Rower ${new Intl.DateTimeFormat('pl-Pl').format(this.date)}`
-        
+    }
+
+    click(){
+        this.clickNumber++
     }
 }
 
@@ -57,9 +61,6 @@ class Cycling extends Workout {
     }
 }
 
-// const running = new Running((50, 39), 7, 40, 170)
-// const cyckling = new Cycling((50, 39), 37, 80, 800)
-// console.log(running, cyckling)
 
 class App {
 
@@ -69,10 +70,9 @@ class App {
 
     constructor(){
         this._getPosition();
-
         form.addEventListener('submit', this._newWorkout.bind(this))
-        
         inputType.addEventListener('change', this._toggleClimbField)
+        containerWorkouts.addEventListener('click', this._moveToWorkout.bind(this))
 
     }
 
@@ -260,6 +260,24 @@ class App {
         }
 
         form.insertAdjacentHTML('afterend', html)
+    }
+
+    _moveToWorkout(e){
+        const workoutElement = e.target.closest('.workout')
+        // console.log(workoutElement)
+
+        if(!workoutElement) return
+        // console.log(workoutElement)
+        const workout = this.#workouts.find(item=>item.id === workoutElement.dataset.id)
+        // console.log(workout)
+        this.#map.setView(workout.coords, 16, {
+            animate:true,
+            pan: {
+                duration: 1,
+            }
+        } )
+        workout.click()
+        console.log(workout)
     }
 }
 
